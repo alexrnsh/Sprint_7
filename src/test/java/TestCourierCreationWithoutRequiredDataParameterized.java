@@ -1,13 +1,15 @@
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import model.CourierModel;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import static data.constants.*;
+import static data.Constants.*;
+import static org.apache.http.HttpStatus.*;
 
 @RunWith(Parameterized.class)
-public class TestCourierCreationWithoutRequiredDataParameterized extends BaseCourierTest {
+public class TestCourierCreationWithoutRequiredDataParameterized extends BaseTest {
 
     private final String login;
     private final String password;
@@ -24,7 +26,7 @@ public class TestCourierCreationWithoutRequiredDataParameterized extends BaseCou
     public static Object[][] testData() {
         return new Object[][]{
                 {null, PASSWORD, FIRSTNAME},
-                {LOGIN + System.currentTimeMillis(), null, FIRSTNAME}
+                {LOGIN, null, FIRSTNAME}
         };
     }
 
@@ -33,7 +35,10 @@ public class TestCourierCreationWithoutRequiredDataParameterized extends BaseCou
     @Description("Параметризованный тест на получение ошибки при попытке создания курьера без логина или пароля")
     public void testCannotCreateCourierWithoutLoginOrPassword() {
         CourierModel courier = new CourierModel(login, password, firstname);
-        createCourierError400(courier);
+        courierApi.createCourier(courier)
+                .statusCode(SC_BAD_REQUEST)
+                .and()
+                .body("message", CoreMatchers.equalTo("Недостаточно данных для создания учетной записи"));
     }
 
 }

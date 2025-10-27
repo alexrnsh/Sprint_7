@@ -1,15 +1,16 @@
 import io.qameta.allure.Description;
-import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
-import io.restassured.http.ContentType;
 import model.CourierModel;
+import org.junit.After;
 import org.junit.Test;
 
-import static data.constants.*;
-import static io.restassured.RestAssured.given;
+import static data.Constants.*;
 import static org.hamcrest.Matchers.*;
+import static org.apache.http.HttpStatus.*;
 
-public class TestCourierCreation extends BaseCourierTest {
+public class TestCourierCreation extends BaseTest {
+
+    private Integer courierIdForTest;
 
     @Test
     @DisplayName("Успешное создание курьера")
@@ -18,7 +19,14 @@ public class TestCourierCreation extends BaseCourierTest {
 
         CourierModel courierModel = new CourierModel(LOGIN,PASSWORD,FIRSTNAME);
 
-        createCourierSuccess(courierModel);
+        courierApi.createCourier(courierModel)
+                .statusCode(SC_CREATED)
+                .body("ok", equalTo(true));
+
+        //сохраняется для очистки после теста
+        courierIdForTest = courierApi.courierLogin(courierModel).statusCode(SC_OK)
+                .extract()
+                .path("id");
     }
 
     @Test
@@ -26,27 +34,28 @@ public class TestCourierCreation extends BaseCourierTest {
     @Description("Отправляет 2 запроса на создание одинаковых курьеров и проверяет что возвращается ошибка 409")
     public void testCannotCreateDuplicateCourier() {
 
-        String login = LOGIN + System.currentTimeMillis();
-        CourierModel courierModel1 = new CourierModel(login, PASSWORD, FIRSTNAME);
-        CourierModel courierModel2 = new CourierModel(login, PASSWORD, FIRSTNAME);
+        CourierModel originalCourier = new CourierModel(LOGIN, PASSWORD, FIRSTNAME);
+        CourierModel duplicateCourier = new CourierModel(LOGIN, PASSWORD, FIRSTNAME);
 
-        createCourierSuccess(courierModel1);
-        createDuplicateCourier(courierModel2);
+        courierApi.createCourier(originalCourier)
+                .statusCode(SC_CREATED)
+                .body("ok", equalTo(true));
+
+        //сохраняется для очистки после теста
+        courierIdForTest  = courierApi.courierLogin(originalCourier).statusCode(SC_OK)
+                .extract()
+                .path("id");
+
+        courierApi.createCourier(duplicateCourier).statusCode(SC_CONFLICT)
+                .body("message", equalTo("Этот логин уже используется"));
+
     }
 
-    @Step (("Создать дупликат курьера, в ответ ожидается ошибка"))
-    public void createDuplicateCourier(CourierModel courierModel) {
-
-        given()
-                .log().all()
-                .contentType(ContentType.JSON)
-                .body(courierModel)
-                .when()
-                .post("/api/v1/courier")
-                .then()
-                .log().all()
-                .statusCode(409)
-                .body("message", equalTo("Этот логин уже используется"));
+    @After
+    public void testCourierDeletion(){
+        if (courierIdForTest != null) {
+            courierApi.courierDelete(courierIdForTest).statusCode(SC_OK);
+        }
     }
 
 }

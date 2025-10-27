@@ -4,7 +4,7 @@ import com.github.javafaker.Faker;
 
 import java.time.LocalDate;
 
-public class constants {
+public class Constants {
     public static final String BASE_URL = "https://qa-scooter.praktikum-services.ru";
     final static Faker user = new Faker();
     public static final String LOGIN = user.name().lastName() + user.number().digits(4);

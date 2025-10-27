@@ -1,13 +1,17 @@
+import api.CourierApi;
+import api.OrderApi;
 import io.restassured.RestAssured;
-import org.junit.Before;
+import org.junit.BeforeClass;
 
-import static data.constants.BASE_URL;
+import static data.Constants.BASE_URL;
 
 public class BaseTest {
 
-    @Before
-    public void setUp() {
+    protected static CourierApi courierApi = new CourierApi();
+    protected static OrderApi orderApi = new OrderApi();
+
+    @BeforeClass
+    public static void setUp() {
         RestAssured.baseURI = BASE_URL;
     }
-
 }
