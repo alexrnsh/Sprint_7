@@ -65,7 +65,7 @@ public class TestCourierLoginWithoutRequiredDataParameterized extends BaseTest {
     @AfterClass
     public static void tearDown(){
         if (courierIdForTest != null) {
-            courierApi.courierDelete(courierIdForTest)
+           courierApi.courierDelete(courierIdForTest)
                     .statusCode(SC_OK);
         }
     }
