@@ -4,7 +4,6 @@ import io.restassured.response.ValidatableResponse;
 import model.OrderModel;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
 import static data.Constants.*;
 import static org.hamcrest.CoreMatchers.is;
