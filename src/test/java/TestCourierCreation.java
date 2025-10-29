@@ -10,23 +10,17 @@ import static org.apache.http.HttpStatus.*;
 
 public class TestCourierCreation extends BaseTest {
 
-    private Integer courierIdForTest;
+    private final CourierModel courierModel = new CourierModel(LOGIN, PASSWORD, FIRSTNAME);
 
     @Test
     @DisplayName("Успешное создание курьера")
     @Description("Отправляет запрос на создание курьера и проверяет что вернулся код 201")
     public void testCourierCanBeCreated() {
 
-        CourierModel courierModel = new CourierModel(LOGIN,PASSWORD,FIRSTNAME);
-
         courierApi.createCourier(courierModel)
                 .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
-        //сохраняется для очистки после теста
-        courierIdForTest = courierApi.courierLogin(courierModel).statusCode(SC_OK)
-                .extract()
-                .path("id");
     }
 
     @Test
@@ -34,17 +28,11 @@ public class TestCourierCreation extends BaseTest {
     @Description("Отправляет 2 запроса на создание одинаковых курьеров и проверяет что возвращается ошибка 409")
     public void testCannotCreateDuplicateCourier() {
 
-        CourierModel originalCourier = new CourierModel(LOGIN, PASSWORD, FIRSTNAME);
         CourierModel duplicateCourier = new CourierModel(LOGIN, PASSWORD, FIRSTNAME);
 
-        courierApi.createCourier(originalCourier)
+        courierApi.createCourier(courierModel)
                 .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
-
-        //сохраняется для очистки после теста
-        courierIdForTest  = courierApi.courierLogin(originalCourier).statusCode(SC_OK)
-                .extract()
-                .path("id");
 
         courierApi.createCourier(duplicateCourier).statusCode(SC_CONFLICT)
                 .body("message", equalTo("Этот логин уже используется"));
@@ -53,6 +41,10 @@ public class TestCourierCreation extends BaseTest {
 
     @After
     public void testCourierDeletion(){
+
+        Integer courierIdForTest  = courierApi.courierLogin(courierModel).statusCode(SC_OK)
+                .extract()
+                .path("id");
         if (courierIdForTest != null) {
             courierApi.courierDelete(courierIdForTest).statusCode(SC_OK);
         }
